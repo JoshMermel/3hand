@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+
+<body>
+<h1>3hand Translate</h1>
+
+<div>
+Vanilla Siteswap: <input type="text" id="siteswap" value="5" onchange="update()"><br>
+Hand Sequence: <input type="text" id="hand_seq" value="lmrm" onchange="update()"><br>
+</div>
+
+<a id=output> Animate with Jugglinglab </a>
+
+
+</body>
+<script src="3hand.js"></script>
+<script>
+function update() {
+  let siteswap = document.getElementById("siteswap").value;
+  let hand_seq = document.getElementById("hand_seq").value;
+
+  // TODO(jmerm): input validation here?
+  let output = translate(parseInput(siteswap), hand_seq);
+  document.getElementById("output").href = linkify(output);
+
+}
+</script>
+</html>
