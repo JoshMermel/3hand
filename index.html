@@ -21,7 +21,8 @@ Hand Sequence: <input type="text" id="hand_seq" value="lmrm" onchange="update()"
   <label for="zero-pad">zero-pad</label>
 </div>
 
-<a id=output> Animate with Jugglinglab </a>
+<a id=animation> Animate with Jugglinglab </a>
+<div id="siteswap_out"></div>
 
 
 </body>
@@ -34,8 +35,8 @@ function update() {
 
   // TODO(jmerm): input validation here?
   let output = translate(parseInput(siteswap), hand_seq, two_pad);
-  document.getElementById("output").href = linkify(output, !two_pad);
-
+  document.getElementById("siteswap_out").innerHTML = output;
+  document.getElementById("animation").href = linkify(output, !two_pad);
 }
 </script>
 </html>
