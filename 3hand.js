@@ -97,7 +97,7 @@ function Toss(height, src, dst) {
 
 // input is an async siteswap in list list int form.
 // hand_seq is a nonempty string consisting of the characters 'l', 'm', and 'r'.
-function translate(input, hand_seq) {
+function translate(input, hand_seq, two_pad) {
   let len = lcm(input.length, hand_seq.length);
 
   let l = [];
@@ -125,6 +125,49 @@ function translate(input, hand_seq) {
       console.log("unexpected hand seq char " + src_hand);
     }
   }
+
+  // TODO(jmerm): mode switcher here.
+  if (two_pad) {
+    return toTwoPaddedSiteswap(l, m, r);
+  } else {
+    return toSiteswap(l, m, r);
+  }
+}
+
+function twoPadHand(src_hand, l, m, r) {
+  let lookup = {};
+  lookup['l'] = l;
+  lookup['m'] = m;
+  lookup['r'] = r;
+
+  for (let i = 0; i < src_hand.length; i++) {
+    if (src_hand[i].height === undefined) {
+      continue;
+    }
+    let dst_pos = (src_hand[i].height + i) % src_hand.length;
+    let dst_hand = lookup[src_hand[i].dst];
+
+    dst_pos += src_hand.length - 1;
+    dst_pos %= src_hand.length;
+    while (dst_hand[dst_pos].height === undefined && src_hand[i].height > 1) {
+      src_hand[i].height -= 1;
+      dst_hand[dst_pos].height = 1;
+      dst_hand[dst_pos].src = src_hand[i].dst;
+      dst_hand[dst_pos].dst = src_hand[i].dst;
+      dst_pos += src_hand.length - 1;
+      dst_pos %= src_hand.length;
+    }
+  }
+}
+
+function toTwoPaddedSiteswap(l, m, r) {
+  twoPadHand(l, l, m, r);
+  console.log(toSiteswap(l, m, r));
+  twoPadHand(m, l, m, r);
+  console.log(toSiteswap(l, m, r));
+  twoPadHand(r, l, m, r);
+  console.log(toSiteswap(l, m, r));
+
   return toSiteswap(l, m, r);
 }
 
@@ -149,3 +192,6 @@ function linkify(siteswap) {
     siteswap + 
     ";body=<(0,-60).|(0,60).>;dwell=0.7;bps=8";
 }
+
+
+console.log(translate(parseInput('645'), 'lmrm'));
