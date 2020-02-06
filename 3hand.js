@@ -162,11 +162,8 @@ function twoPadHand(src_hand, l, m, r) {
 
 function toTwoPaddedSiteswap(l, m, r) {
   twoPadHand(l, l, m, r);
-  console.log(toSiteswap(l, m, r));
   twoPadHand(m, l, m, r);
-  console.log(toSiteswap(l, m, r));
   twoPadHand(r, l, m, r);
-  console.log(toSiteswap(l, m, r));
 
   return toSiteswap(l, m, r);
 }
@@ -192,6 +189,3 @@ function linkify(siteswap) {
     siteswap + 
     ";body=<(0,-60).|(0,60).>;dwell=0.7;bps=8";
 }
-
-
-console.log(translate(parseInput('645'), 'lmrm'));
