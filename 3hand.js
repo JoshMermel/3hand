@@ -1,6 +1,5 @@
 // TODO(jmerm): validate hand_seq 
 
-
 // Takes a char in the siteswap range [0-9a-z]
 // Returns an int representing a throw of that height
 function toInt(c) {
@@ -46,6 +45,9 @@ function lcm(x, y) {
 // Takes an integer value in the siteswap range
 // returns a char representing a throw of that height
 function toToss(i) {
+  if (i === undefined) {
+    return 0;
+  }
   i *= 2;
   if (i >= 0 && i <= 9) {
     return String.fromCharCode(i + 48);
@@ -55,8 +57,11 @@ function toToss(i) {
   // TODO: handle characters larger than this?
 }
 
-
+// returns the suffix for a throw from src_hand to dst_hand.
 function suffix(src_hand, dst_hand) {
+  if (src_hand === undefined || dst_hand === undefined) {
+    return "";
+  }
   switch (src_hand + dst_hand) {
     case "ll":
       return "";
@@ -79,13 +84,25 @@ function suffix(src_hand, dst_hand) {
   }
 }
 
+// struct for managing tosses
+function Toss(height, src, dst) {
+  this.height = height;
+  this.src = src;
+  this.dst = dst;
+
+  this.stringify = function() {
+    return String(toToss(this.height)) + suffix(this.src, this.dst);
+  }
+}
+
 // input is an async siteswap in list list int form.
 // hand_seq is a nonempty string consisting of the characters 'l', 'm', and 'r'.
 function translate(input, hand_seq) {
   let len = lcm(input.length, hand_seq.length);
-  // juggler 1 manages 'l' and 'm'. juggler2 manages 'r'.
-  let juggler1 = "";
-  let juggler2 = "";
+
+  let l = [];
+  let m = [];
+  let r = [];
 
   for (let i = 0; i < len; i++) {
     let height = input[i % input.length][0];
@@ -93,19 +110,38 @@ function translate(input, hand_seq) {
     let dst_hand = hand_seq[(i + height) % hand_seq.length];
 
     if (src_hand == 'l') {
-      juggler1 += "(" + toToss(height) + suffix('l', dst_hand) + ",0)";
-      juggler2 += "(0,0)";
+      l.push(new Toss(height, src_hand, dst_hand));
+      m.push(new Toss());
+      r.push(new Toss());
     } else if (src_hand == 'm') {
-      juggler1 += "(0," + toToss(height) + suffix('m', dst_hand) + ")";
-      juggler2 += "(0,0)";
+      l.push(new Toss());
+      m.push(new Toss(height, src_hand, dst_hand));
+      r.push(new Toss());
     } else if (src_hand == 'r') {
-      juggler1 += "(0,0)";
-      juggler2 += "(" + toToss(height) + suffix('r', dst_hand) + ",0)";
+      l.push(new Toss());
+      m.push(new Toss());
+      r.push(new Toss(height, src_hand, dst_hand));
     } else {
       console.log("unexpected hand seq char " + src_hand);
     }
   }
-  return '<' + juggler1 + '|' + juggler2 + '>';
+  return toSiteswap(l, m, r);
+}
+
+function toSiteswap(l, m, r) {
+  // TODO(jmerm): assert lens are equal.
+  let ret = '<';
+  for (let i = 0; i < l.length; i++) {
+    ret += '(' + l[i].stringify() + ',' + m[i].stringify() + ')';
+  }
+
+  ret += '|';
+  for (let i = 0; i < r.length; i++) {
+    ret += '(' + r[i].stringify() + ',0)';
+  }
+  ret += '>';
+
+  return ret;
 }
 
 function linkify(siteswap) {
