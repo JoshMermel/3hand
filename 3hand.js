@@ -189,7 +189,7 @@ function linkify(siteswap, lower) {
     siteswap + 
     ";body=<(0,-60).|(0,60).>;dwell=0.7";
   if (lower) {
-    ret += "bps=8";
+    ret += ";bps=8";
   }
   return ret;
 }
