@@ -34,7 +34,7 @@ function update() {
 
   // TODO(jmerm): input validation here?
   let output = translate(parseInput(siteswap), hand_seq, two_pad);
-  document.getElementById("output").href = linkify(output);
+  document.getElementById("output").href = linkify(output, !two_pad);
 
 }
 </script>

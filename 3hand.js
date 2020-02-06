@@ -184,8 +184,12 @@ function toSiteswap(l, m, r) {
   return ret;
 }
 
-function linkify(siteswap) {
-  return "http://jugglinglab.org/anim?pattern=" + 
+function linkify(siteswap, lower) {
+  let ret = "http://jugglinglab.org/anim?pattern=" + 
     siteswap + 
-    ";body=<(0,-60).|(0,60).>;dwell=0.7;bps=8";
+    ";body=<(0,-60).|(0,60).>;dwell=0.7";
+  if (lower) {
+    ret += "bps=8";
+  }
+  return ret;
 }
