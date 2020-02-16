@@ -97,7 +97,7 @@ function Toss(height, src, dst) {
 
 // input is an async siteswap in list list int form.
 // hand_seq is a nonempty string consisting of the characters 'l', 'm', and 'r'.
-function translate(input, hand_seq, two_pad) {
+function translate(input, hand_seq, mode) {
   let len = lcm(input.length, hand_seq.length);
 
   let l = [];
@@ -126,12 +126,39 @@ function translate(input, hand_seq, two_pad) {
     }
   }
 
-  // TODO(jmerm): mode switcher here.
-  if (two_pad) {
+  if (mode === "two-pad") {
     return toTwoPaddedSiteswap(l, m, r);
+  } else if (mode === "light-two-pad") {
+    let reduction_amount = reductionAmount(hand_seq, input);
+    return toLightlyPaddedSiteswap(l, m, r, reduction_amount);
   } else {
     return toSiteswap(l, m, r);
   }
+}
+
+function reductionAmount(hand_seq, input) {
+  let min = 2;
+  for (let i = 0; i < hand_seq.length; i++) {
+    min = Math.min(min, nextOccurrence(hand_seq, i));
+  }
+
+  // TODO(jmerm): if input has any 0s or 1's, the might limit how much we can
+  // reduce.
+
+  return min;
+}
+
+// takes a hand seq and index, returns how many steps before that hand happens
+// again.
+function nextOccurrence(hand_seq, index) {
+  let i = 0;
+  while(true) {
+    if (hand_seq[(index + i + 1) % hand_seq.length] === hand_seq[index]) {
+      return i;
+    }
+    i++;
+  }
+  console.log("this should never happen");
 }
 
 function twoPadHand(src_hand, l, m, r) {
@@ -167,6 +194,46 @@ function toTwoPaddedSiteswap(l, m, r) {
 
   return toSiteswap(l, m, r);
 }
+
+function lightlyTwoPadHand(src_hand, l, m, r, amount) {
+  let lookup = {};
+  lookup['l'] = l;
+  lookup['m'] = m;
+  lookup['r'] = r;
+
+  for (let i = 0; i < src_hand.length; i++) {
+    if (src_hand[i].height === undefined) {
+      continue;
+    }
+    let dst_pos = (src_hand[i].height + i) % src_hand.length;
+    let dst_hand = lookup[src_hand[i].dst];
+
+    dst_pos += src_hand.length - 1;
+    dst_pos %= src_hand.length;
+    // while (dst_hand[dst_pos].height === undefined && src_hand[i].height > 1) {
+    if (src_hand[i].height > 1) {
+      for (let j = 0; j < amount; j++) {
+        // TODO(jmerm): check that src_hand[i].height > 1
+        src_hand[i].height -= 1;
+        dst_hand[dst_pos].height = 1;
+        dst_hand[dst_pos].src = src_hand[i].dst;
+        dst_hand[dst_pos].dst = src_hand[i].dst;
+        dst_pos += src_hand.length - 1;
+        dst_pos %= src_hand.length;
+      }
+    }
+  }
+}
+
+function toLightlyPaddedSiteswap(l, m, r, amount) {
+  lightlyTwoPadHand(l, l, m, r, amount);
+  lightlyTwoPadHand(m, l, m, r, amount);
+  lightlyTwoPadHand(r, l, m, r, amount);
+
+  return toSiteswap(l, m, r);
+
+}
+
 
 function toSiteswap(l, m, r) {
   // TODO(jmerm): assert lens are equal.

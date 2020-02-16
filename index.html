@@ -16,6 +16,12 @@ Hand Sequence: <input type="text" id="hand_seq" value="lmrm" onchange="update()"
 </div>
 
 <div>
+  <input type="radio" id="light-two-pad" name="mode" value="light-two-pad"
+         onclick="update()">
+  <label for="light-two-pad">light-two-pad</label>
+</div>
+
+<div>
   <input type="radio" id="zero-pad" name="mode" value="zero-pad"
          onclick="update()">
   <label for="zero-pad">zero-pad</label>
@@ -31,12 +37,12 @@ Hand Sequence: <input type="text" id="hand_seq" value="lmrm" onchange="update()"
 function update() {
   let siteswap = document.getElementById("siteswap").value;
   let hand_seq = document.getElementById("hand_seq").value;
-  let two_pad = document.getElementById("two-pad").checked;
+  let mode = document.querySelector('input[name="mode"]:checked').value;
 
   // TODO(jmerm): input validation here?
-  let output = translate(parseInput(siteswap), hand_seq, two_pad);
+  let output = translate(parseInput(siteswap), hand_seq, mode);
   document.getElementById("siteswap_out").innerHTML = output;
-  document.getElementById("animation").href = linkify(output, !two_pad);
+  document.getElementById("animation").href = linkify(output, true);
 }
 </script>
 </html>
