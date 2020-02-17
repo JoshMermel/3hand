@@ -138,6 +138,13 @@ function translate(input, hand_seq, mode) {
 
 function reductionAmount(hand_seq, input) {
   let min = 2;
+  for (let i = 0; i < input.length; i++) {
+    if (input[i][0] === 1) {
+      min = 1;
+    }
+  }
+
+
   for (let i = 0; i < hand_seq.length; i++) {
     min = Math.min(min, nextOccurrence(hand_seq, i));
   }
