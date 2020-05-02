@@ -13,14 +13,68 @@ function toInt(c) {
   }
 }
 
-// TODO(jmerm): multiplex support
-// TODO(jmerm): establish limit on input height so max height fits under limit.
+// Takes input as a string. Returns it as a list list int.
 function parseInput(input) {
   let ret = [];
+  let accum = [];  // accumulator for multiplexes
+  let parsing_multiplex = false;
+
   for (let i = 0; i < input.length; i++) {
-    ret.push([toInt(input[i])]);
+    if (input[i] == '[') {
+      if (parsing_multiplex) {
+        console.log("mismatched braces.");
+      }
+      parsing_multiplex = true;
+    } else if (input[i] == ']') {
+      if (!parsing_multiplex) {
+        console.log("mismatched braces");
+        break;
+      }
+      ret.push(accum);
+      accum = [];
+      parsing_multiplex = false;
+    } else if (parsing_multiplex) {
+      accum.push(toInt(input[i]));
+    } else {
+      ret.push([toInt(input[i])]);
+    }
+  }
+
+  if (parsing_multiplex) {
+    console.log("failed to close brace");
   }
   return ret;
+}
+
+// Takes input as a list list int.
+// Returns true if it is a valid siteswap and false otherwise.
+function validateSiteswap(siteswap) {
+  // Compute how many balls land on each beat
+  let landings = [];
+  for (let i = 0; i < siteswap.length; i++) {
+    for (let j = 0; j < siteswap[i].length; j++) {
+      let down_pos = (siteswap[i][j] + i) % siteswap.length;
+      if (landings[down_pos] === undefined) {
+        landings[down_pos] = 1;
+      } else {
+        landings[down_pos] += 1;
+      }
+    }
+  }
+  for (let i = 0; i < siteswap.length; i++) {
+    if (landings[i] === undefined) {
+      landings[i] = 0;
+    }
+  }
+
+  // Check that the number of landing each beat matches the number of tosses.
+  for (let i = 0; i < siteswap.length; i++) {
+    if (landings[i] !== siteswap[i].length) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // Compute greatest common divisor using the Euclidean algorithm.
@@ -241,9 +295,12 @@ function toLightlyPaddedSiteswap(l, m, r, amount) {
 
 }
 
-
+// Takes a list of tosses that happen in each hand on each beat.
+// Returns a string representation of that 3-handed siteswap.
 function toSiteswap(l, m, r) {
-  // TODO(jmerm): assert lens are equal.
+  if (l.length != m.length || l.length != r.length) {
+    console.log("Length mismatch converting to siteswap");
+  }
   let ret = '<';
   for (let i = 0; i < l.length; i++) {
     ret += '(' + l[i].stringify() + ',' + m[i].stringify() + ')';
@@ -258,6 +315,8 @@ function toSiteswap(l, m, r) {
   return ret;
 }
 
+// Takes a sitswap in string form
+// returns a link to animate it on jugglinglab.org.
 function linkify(siteswap, lower) {
   let ret = "http://jugglinglab.org/anim?pattern=" + 
     siteswap + 
