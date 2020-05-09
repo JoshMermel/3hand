@@ -152,9 +152,6 @@ function Toss(height, src, dst) {
   this.dst = dst;
 
   this.stringify = function() {
-    if (this.height === undefined) {
-      return "";
-    }
     return String(toToss(this.height)) + suffix(this.src, this.dst);
   }
 }
