@@ -1,4 +1,5 @@
 // TODO(jmerm): validate hand_seq 
+// TODO(jmerm) neutral movement on middle hand.
 
 // Takes a char in the siteswap range [0-9a-z]
 // Returns an int representing a throw of that height
@@ -101,6 +102,12 @@ function lcm(x, y) {
 function toToss(i) {
   if (i === undefined) {
     return 0;
+  } else if (i === -1) {
+    // This is a hack that let's me use -1's to indicate added 2's when padding.
+    return 2;
+  } else if (i < -1) {
+    // This is worse hack for notating multiplexed added twos.
+    return '[' + '2'.repeat(-1 * i) + ']';
   }
   i *= 2;
   if (i >= 0 && i <= 9) {
@@ -145,8 +152,21 @@ function Toss(height, src, dst) {
   this.dst = dst;
 
   this.stringify = function() {
+    if (this.height === undefined) {
+      return "";
+    }
     return String(toToss(this.height)) + suffix(this.src, this.dst);
   }
+}
+
+function stringify(tosslist) {
+  if (tosslist.length === 1) {
+    return tosslist[0].stringify();
+  }
+
+  return '['
+    + tosslist.map(function(toss) {return toss.stringify();}).join(' ')
+    + ']';
 }
 
 // input is an async siteswap in list list int form.
@@ -159,22 +179,25 @@ function translate(input, hand_seq, mode) {
   let r = [];
 
   for (let i = 0; i < len; i++) {
-    let height = input[i % input.length][0];
+    let tosses = input[i % input.length];
+    let accum = [];
     let src_hand = hand_seq[i % hand_seq.length];
-    let dst_hand = hand_seq[(i + height) % hand_seq.length];
-
+    for (let height of tosses) {
+      let dst_hand = hand_seq[(i + height) % hand_seq.length];
+      accum.push(new Toss(height, src_hand, dst_hand));
+    }
     if (src_hand == 'l') {
-      l.push(new Toss(height, src_hand, dst_hand));
-      m.push(new Toss());
-      r.push(new Toss());
+      l.push(accum);
+      m.push([new Toss()]);
+      r.push([new Toss()]);
     } else if (src_hand == 'm') {
-      l.push(new Toss());
-      m.push(new Toss(height, src_hand, dst_hand));
-      r.push(new Toss());
+      l.push([new Toss()]);
+      m.push(accum);
+      r.push([new Toss()]);
     } else if (src_hand == 'r') {
-      l.push(new Toss());
-      m.push(new Toss());
-      r.push(new Toss(height, src_hand, dst_hand));
+      l.push([new Toss()]);
+      m.push([new Toss()]);
+      r.push(accum);
     } else {
       console.log("unexpected hand seq char " + src_hand);
     }
@@ -193,18 +216,19 @@ function translate(input, hand_seq, mode) {
 function reductionAmount(hand_seq, input) {
   let min = 2;
   for (let i = 0; i < input.length; i++) {
-    if (input[i][0] === 1) {
-      min = 1;
+    for (let j = 0; j < input[i].length; j++) {
+      if (input[i][j] === 1) {
+        return 0;
+      } else if (input[i][j] === 2) {
+        min = 1;
+        break;
+      }
     }
   }
-
 
   for (let i = 0; i < hand_seq.length; i++) {
     min = Math.min(min, nextOccurrence(hand_seq, i));
   }
-
-  // TODO(jmerm): if input has any 0s or 1's, the might limit how much we can
-  // reduce.
 
   return min;
 }
@@ -229,21 +253,28 @@ function twoPadHand(src_hand, l, m, r) {
   lookup['r'] = r;
 
   for (let i = 0; i < src_hand.length; i++) {
-    if (src_hand[i].height === undefined) {
-      continue;
-    }
-    let dst_pos = (src_hand[i].height + i) % src_hand.length;
-    let dst_hand = lookup[src_hand[i].dst];
-
-    dst_pos += src_hand.length - 1;
-    dst_pos %= src_hand.length;
-    while (dst_hand[dst_pos].height === undefined && src_hand[i].height > 1) {
-      src_hand[i].height -= 1;
-      dst_hand[dst_pos].height = 1;
-      dst_hand[dst_pos].src = src_hand[i].dst;
-      dst_hand[dst_pos].dst = src_hand[i].dst;
+    for (let j = 0; j < src_hand[i].length; j++) {
+      if (src_hand[i][j].height === undefined || src_hand[i][j].height < 0) {
+        continue;
+      }
+      let dst_pos = (src_hand[i][j].height + i) % src_hand.length;
+      let dst_hand = lookup[src_hand[i][j].dst];
       dst_pos += src_hand.length - 1;
       dst_pos %= src_hand.length;
+
+      while ((dst_hand[dst_pos][0].height === undefined || dst_hand[dst_pos][0].height < 0) && src_hand[i][j].height > 1) {
+        src_hand[i][j].height -= 1;
+        if (dst_hand[dst_pos][0].height === undefined) {
+          dst_hand[dst_pos][0].height = 0;
+          dst_hand[dst_pos][0].src = src_hand[i].dst;
+          dst_hand[dst_pos][0].dst = src_hand[i].dst;
+        }
+        dst_hand[dst_pos][0].height -= 1;
+
+        dst_pos += src_hand.length - 1;
+        dst_pos %= src_hand.length;
+
+      }
     }
   }
 }
@@ -256,40 +287,29 @@ function toTwoPaddedSiteswap(l, m, r) {
   return toSiteswap(l, m, r);
 }
 
-function lightlyTwoPadHand(src_hand, l, m, r, amount) {
-  let lookup = {};
-  lookup['l'] = l;
-  lookup['m'] = m;
-  lookup['r'] = r;
-
+function lightlyTwoPadHand(src_hand, amount) {
   for (let i = 0; i < src_hand.length; i++) {
-    if (src_hand[i].height === undefined) {
+    // -1 indicated added two padding and the padding doesn't need to be padded
+    // again.
+    if (src_hand[i][0].height === undefined || src_hand[i][0].height === -1) {
       continue;
     }
-    let dst_pos = (src_hand[i].height + i) % src_hand.length;
-    let dst_hand = lookup[src_hand[i].dst];
-
-    dst_pos += src_hand.length - 1;
-    dst_pos %= src_hand.length;
-    // while (dst_hand[dst_pos].height === undefined && src_hand[i].height > 1) {
-    if (src_hand[i].height > 1) {
-      for (let j = 0; j < amount; j++) {
-        // TODO(jmerm): check that src_hand[i].height > 1
-        src_hand[i].height -= 1;
-        dst_hand[dst_pos].height = 1;
-        dst_hand[dst_pos].src = src_hand[i].dst;
-        dst_hand[dst_pos].dst = src_hand[i].dst;
-        dst_pos += src_hand.length - 1;
-        dst_pos %= src_hand.length;
-      }
+    // decrement the throws
+    for (let j = 0; j < src_hand[i].length; j++) {
+      src_hand[i][j].height -= amount;
+    }
+    // count back the right number of 1s as a runway into the throws.
+    for (let countback = 1; countback < amount+1; countback++) {
+      index = (((i - countback) % src_hand.length) + src_hand.length) % src_hand.length;
+      src_hand[index] = Array(src_hand[i].length).fill(new Toss(-1, src_hand[i][0].dst, src_hand[i][0].dst));
     }
   }
 }
 
 function toLightlyPaddedSiteswap(l, m, r, amount) {
-  lightlyTwoPadHand(l, l, m, r, amount);
-  lightlyTwoPadHand(m, l, m, r, amount);
-  lightlyTwoPadHand(r, l, m, r, amount);
+  lightlyTwoPadHand(l, amount);
+  lightlyTwoPadHand(m, amount);
+  lightlyTwoPadHand(r, amount);
 
   return toSiteswap(l, m, r);
 
@@ -303,12 +323,12 @@ function toSiteswap(l, m, r) {
   }
   let ret = '<';
   for (let i = 0; i < l.length; i++) {
-    ret += '(' + l[i].stringify() + ',' + m[i].stringify() + ')';
+    ret += '(' + stringify(l[i]) + ',' + stringify(m[i]) + ')';
   }
 
   ret += '|';
   for (let i = 0; i < r.length; i++) {
-    ret += '(' + r[i].stringify() + ',0)';
+    ret += '(' + stringify(r[i]) + ',0)';
   }
   ret += '>';
 
