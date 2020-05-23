@@ -42,7 +42,7 @@ function update() {
   let siteswap = parseInput(input);
   if (!validateSiteswap(siteswap)) {
     document.getElementById("siteswap_out").innerHTML = "Input is not a valid siteswap";
-  } else if (hand_seq.match(/[^lmr]+/g)) {
+  } else if (hand_seq.match(/[^lmr]+/g) || hand_seq === "") {
     document.getElementById("siteswap_out").innerHTML = "Hand seq must contain only the characters 'l', 'm', and 'r'.";
   } else {
     let output = translate(siteswap, hand_seq, mode);
