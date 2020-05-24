@@ -334,7 +334,7 @@ function toSiteswap(l, m, r) {
 // Takes a sitswap in string form
 // returns a link to animate it on jugglinglab.org.
 function linkify(siteswap, lower) {
-  let ret = "http://jugglinglab.org/anim?pattern=" + 
+  let ret = "http://jugglinglab.org/anim?pattern=" +
     siteswap + 
     ";body=<(0,-60).|(0,60).>;dwell=0.7";
   if (lower) {
