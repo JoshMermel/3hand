@@ -214,11 +214,10 @@ function reductionAmount(hand_seq, input) {
   let min = 2;
   for (let i = 0; i < input.length; i++) {
     for (let j = 0; j < input[i].length; j++) {
-      if (input[i][j] === 1) {
+      if (input[i][j] === 1 || input[i][j] === 0) {
         return 0;
       } else if (input[i][j] === 2) {
         min = 1;
-        break;
       }
     }
   }
