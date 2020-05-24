@@ -296,7 +296,7 @@ function lightlyTwoPadHand(src_hand, amount) {
     }
     // count back the right number of 1s as a runway into the throws.
     for (let countback = 1; countback < amount+1; countback++) {
-      index = (((i - countback) % src_hand.length) + src_hand.length) % src_hand.length;
+      let index = (((i - countback) % src_hand.length) + src_hand.length) % src_hand.length;
       src_hand[index] = Array(src_hand[i].length).fill(new Toss(-1, src_hand[i][0].dst, src_hand[i][0].dst));
     }
   }
