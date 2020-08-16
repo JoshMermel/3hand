@@ -362,5 +362,6 @@ function updatePage() {
       widget.destroy();
     }
     widget = juggleGym.createWidget(document.getElementById("widget"), {siteswap: output});
+    document.getElementById("widget").childNodes[0].height=document.getElementById("widget").childNodes[0].width/2;
   }
 }
