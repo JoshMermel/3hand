@@ -342,3 +342,25 @@ function linkify(siteswap, lower) {
   }
   return ret;
 }
+
+var widget = undefined;
+function updatePage() {
+  let input = document.getElementById("siteswap").value;
+  let hand_seq = document.getElementById("hand_seq").value;
+  let mode = document.querySelector('input[name="mode"]:checked').value;
+
+  let siteswap = parseInput(input);
+  if (!validateSiteswap(siteswap)) {
+    document.getElementById("siteswap_out").innerHTML = "Input is not a valid siteswap";
+  } else if (hand_seq.match(/[^lmr]+/g) || hand_seq === "") {
+    document.getElementById("siteswap_out").innerHTML = "Hand seq must contain only the characters 'l', 'm', and 'r'.";
+  } else {
+    let output = translate(siteswap, hand_seq, mode);
+    document.getElementById("siteswap_out").innerHTML = output;
+    document.getElementById("animation").href = linkify(output, true);
+    if (widget) {
+      widget.destroy();
+    }
+    widget = juggleGym.createWidget(document.getElementById("widget"), {siteswap: output});
+  }
+}
