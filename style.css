@@ -1,0 +1,4 @@
+.ex3 .parent {
+  display: grid;
+  grid-template-columns: 25% 75%
+}

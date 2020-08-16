@@ -1,57 +1,49 @@
 <!doctype html>
 <html>
 
-<style>
-  .column {
-    float: left;
-    width: 50%;
-    height: 100%;
-  }
-
-  /* Clear floats after the columns */
-  .row:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-</style>
+<head>
+  <link rel = "stylesheet" type = "text/css" href = "style.css" />
+  <script src="https://jug.gl/gym/embed/jugglegym-1.0.0.min.js"></script>
+</head>
 
 <body onload="update()">
 <h1>3hand Translate</h1>
 
-<div class="column">
-Vanilla Siteswap: <input type="text" id="siteswap" value="5" onchange="update()"><br>
-Hand Sequence: <input type="text" id="hand_seq" value="lmrm" onchange="update()"><br>
+<div class="parent">
+  <div class="section">
+    Vanilla Siteswap: <input type="text" id="siteswap" value="5" onchange="update()"><br>
+    Hand Sequence: <input type="text" id="hand_seq" value="lmrm" onchange="update()"><br>
 
-<div>
-  <input type="radio" id="two-pad" name="mode" value="two-pad"
-         onclick="update()" checked>
-  <label for="two-pad">two-pad</label>
-</div>
+    <div>
+      <input type="radio" id="two-pad" name="mode" value="two-pad"
+             onclick="update()" checked>
+      <label for="two-pad">two-pad</label>
+    </div>
 
-<div>
-  <input type="radio" id="light-two-pad" name="mode" value="light-two-pad"
-         onclick="update()">
-  <label for="light-two-pad">light-two-pad</label>
-</div>
+    <div>
+      <input type="radio" id="light-two-pad" name="mode" value="light-two-pad"
+             onclick="update()">
+      <label for="light-two-pad">light-two-pad</label>
+    </div>
 
-<div>
-  <input type="radio" id="zero-pad" name="mode" value="zero-pad"
-         onclick="update()">
-  <label for="zero-pad">zero-pad</label>
-</div>
+    <div>
+      <input type="radio" id="zero-pad" name="mode" value="zero-pad"
+             onclick="update()">
+      <label for="zero-pad">zero-pad</label>
+    </div>
 
-<a id=animation> Animate with Jugglinglab </a>
-<div id="siteswap_out"></div>
-</div>
+    <a id=animation> Animate with Jugglinglab </a>
+    <div id="siteswap_out"></div>
+  </div>
 
-<div class="column">
-  <div id="widget" style="width: 100%; height: 100%;"></div>
+  <div class="section">
+    <div id="widget"></div>
+  </div>
+
 </div>
 
 
 </body>
-<script src="https://jug.gl/gym/embed/jugglegym-1.0.0.min.js"></script>
 <script src="3hand.js"></script>
 <script>
 function update() {
